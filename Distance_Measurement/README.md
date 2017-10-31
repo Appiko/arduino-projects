@@ -1,12 +1,12 @@
 Objective		       	:	 Distance Measurement using VL6180X sensor with Arduino Pro Micro
 =============
-We want to use this distance measuring setup to measure the distance inside the enclosure of another product(length from top to bottom of enclosure). So whenever me make any changes inside the enclosure or on the PCB inside it we don't have to measure it again and again. Just close the enclosure and the change is displayed on an OLED display. 
+We want to use this distance measuring setup to measure the distance inside the enclosure of another product(length from top to bottom of enclosure). So whenever I make any changes inside the enclosure or on the PCB inside it we don't have to measure it again and again. Just close the enclosure and the change is displayed on an OLED display. 
 
 Materials Required	:
 ====================
-1.	Arduino Pro Micro (we used 5V, 16MHz cofiguration)
+1.	Arduino Pro Micro (we used 5V, 16MHz configuration)
 2.	VL6180X Time of Flight Micro-LIDAR distance sensor breakout board
-3.	128x64 1.3" OLED graphical display with SSD1306 driver with controller
+3.	128x64 1.3" OLED graphical display with the SSD1306 driver with controller
 4.	Wires or jumpers
 5.	USB cable (USB to USB-micro)
 
@@ -15,7 +15,7 @@ Circuit and Wiring	:
 ![Circuit](http://fritzing.org/media/fritzing-repo/projects/d/distance_measurement/images/FritzingDistMeasure_bb.jpg)
 Drawn in Fritzing.
 Connect the sensor and OLED with Pro Micro as shown in the diagram above. 
-Use USB cable for supply, or alternatively, you can use any external source of upto 12V at RAW pin
+Use USB cable for supply, or alternatively, you can use any external source of up to 12V at RAW pin
 (which will be regulated to 5V or 3.3V resp.). Do not give an unregulated supply if you want to use the VCC pin.
  
 Program				:
@@ -101,7 +101,7 @@ void loop()
   }
 }
 ```
-Make the connections, connect arduino to your desktop. Select Board as "Arduino Leonardo", select the port and upload the code.
+Make the connections, connect Arduino to your desktop. Select Board as "Arduino Leonardo", select the port and upload the code.
 Now move your hand (or whatever object you want!) up and down over the distance sensor. You see the distance measured on the OLED! 
 
 Observations :
