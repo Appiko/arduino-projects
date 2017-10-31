@@ -1,7 +1,7 @@
-###Objective			:	#Distance Measurement using VL6180X sensor and Arduino Pro Micro
-
-###Materials Required	:
-
+Objective		       	:	 Distance Measurement using VL6180X sensor and Arduino Pro Micro
+=============
+Materials Required	:
+====================
 1.	Arduino Pro Micro (we used 5V, 16MHz cofiguration)
 2.	VL6180X Time of Flight Micro-LIDAR distance sensor breakout board
 3.	128x64 1.3" OLED graphical display with SSD1306 driver with controller
