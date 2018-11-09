@@ -7,7 +7,7 @@
 #include <SD.h>
 #include <SPI.h>
  
-int batRead = A0;                    // select the input pin for the AA battery
+int batRead = A9;                    // select the input pin for the AA battery
 int voltageValue = 0;                // variable to store the value coming from the Battery
 float val = 0;                       // for calculating Battery voltage
 
@@ -41,7 +41,7 @@ void setup()
   // it can be any of the ADC_MED_SPEED enum: VERY_LOW_SPEED, LOW_SPEED, MED_SPEED, HIGH_SPEED or VERY_HIGH_SPEED
   adc->setSamplingSpeed(ADC_SAMPLING_SPEED::MED_SPEED); // change the sampling speed
   
-  adc->startContinuous(batRead, ADC_0);
+  //adc->startContinuous(batRead, ADC_0);
   
   delay(500);  
 }
@@ -62,6 +62,8 @@ void loop()
   val = (3.3 * voltageValue)/adc->getMaxValue(ADC_0);               
   Serial.print("\n Battery Voltage (in V): ");    //show value on Serial Monitor
   Serial.println(val); 
+  Serial.println(adc->getMaxValue(ADC_0));
+  Serial.println(voltageValue); 
   digitalWrite(LED_BUILTIN, HIGH);
   delay(300);
   digitalWrite(LED_BUILTIN, LOW);
@@ -87,5 +89,5 @@ void loop()
   } 
 
   //delay of 1 min.
-  delay(60000);  
+  delay(6000);  
 }
