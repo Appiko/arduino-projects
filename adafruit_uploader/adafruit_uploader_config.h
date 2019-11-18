@@ -1,2 +1,2 @@
-char *FEED_NAME = "test";
-int BAUD_RATE = 1000000;
+char *FEED_NAME = "light-guide-check-rx";
+int BAUD_RATE = 115200;
