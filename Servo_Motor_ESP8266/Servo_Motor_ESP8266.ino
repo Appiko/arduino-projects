@@ -8,10 +8,22 @@ void setup() {
 }
 
 void loop() {
+
+	int slowness = 60;
+	int angle = 95;
   // put your main code here, to run repeatedly:
-  motor.write(90);
-  delay(1500);
-  motor.write(0);
-  delay(3500);
+  for(int i = 0; i < angle; i += 15){
+		motor.write(i);
+		delay(slowness);
+	}
+
+	delay(1000);
+
+	for(int i = angle; i > 0; i -= 15){
+		motor.write(i);
+		delay(slowness);
+	}
+
+  delay(1000);
 
 }
