@@ -23,7 +23,15 @@
 #define TINY_GSM_USE_WIFI false
 
 #define GSM_PIN ""
+#define CC1125_GPIO0   5
+#define CC1125_GPIO1   
+#define CC1125_GPIO2   6
+#define CC1125_GPIO3   12
+#define CC1125_RESET   11
 
+#define CC1190_HGM     4
+#define CC1190_PA_EN   2  
+#define CC1190_LNA_EN  3
 
 const char apn[]  = "bsnlnet";
 const char gprsUser[] = "";
@@ -50,7 +58,11 @@ HttpClient http(client, server, port);
 /**End**/
 // #ifdef SOFTSERIAL_DEBUG
 #include <SoftwareSerial.h>
+<<<<<<< HEAD
 SoftwareSerial SerialMon (8, 6);
+=======
+SoftwareSerial SerialMon (22, 20);
+>>>>>>> 55ba45aa37d02593b50884052ae70d44f74b8b4f
 // #define SerialMon.begin (x)   SerialMon.begin((x))
 // #define SerialMon.print (...) SerialMon.print (__VA_ARGS__)
 // #define SerialMon.println (...) SerialMon.println (__VA_ARGS__)
@@ -410,11 +422,20 @@ void setup()
     l_radio_params.rf_rx_done_handler = radio_packet_received;
     l_radio_params.rf_rx_failed_handler = radio_packet_drop;
 
-    l_radio_hw.rf_gpio0_pin = 26;
-    l_radio_hw.rf_gpio2_pin = 20;
-    l_radio_hw.rf_gpio3_pin = 21;
-    l_radio_hw.rf_reset_pin = 6;
+    l_radio_hw.rf_gpio0_pin = CC1125_GPIO0;
+    l_radio_hw.rf_gpio2_pin = CC1125_GPIO2;
+    l_radio_hw.rf_gpio3_pin = CC1125_GPIO3;
+    l_radio_hw.rf_reset_pin = CC1125_RESET;
     pinMode(ss_pin,OUTPUT);
+
+    pinMode(CC1190_PA_EN, OUTPUT);
+    pinMode(CC1190_LNA_EN, OUTPUT);
+    pinMode(CC1190_HGM, OUTPUT);
+
+    digitalWrite(CC1190_PA_EN, 0);
+    digitalWrite(CC1190_LNA_EN, 1);
+    digitalWrite(CC1190_HGM, 1);
+    
     SPI.begin();
     // SPI.beginTransaction (spiSet);
 
