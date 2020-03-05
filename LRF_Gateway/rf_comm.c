@@ -473,7 +473,7 @@ uint32_t rf_comm_wake(void)
 	trxSpiCmdStrobe(SIDLE);
 
 	/* 1 ms delay for letting RX settle */
-	delay (1);
+	delay (10);
 
 	return(0);
 }
@@ -527,11 +527,11 @@ void rf_comm_gpiote_Handler ()
 {
     trx16BitRegAccess((RADIO_READ_ACCESS | RADIO_BURST_ACCESS), 0x2F,
                     (0x00FF & MARC_STATUS1), &g_marc_sts1, 1);
-    g_current_state = R_IDLE;
-    if(gp_rx_done != NULL)
-    {
-        gp_rx_done (g_marc_sts1);
-    }
+    // g_current_state = R_IDLE;
+    // if(gp_rx_done != NULL)
+    // {
+    //     gp_rx_done (g_marc_sts1);
+    // }
 
 //     if((g_marc_sts1 & 0xFF) == (MARC_NO_FAILURE)) 
 //     {

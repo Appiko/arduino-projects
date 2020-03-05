@@ -34,7 +34,7 @@ const char wifiPass[] = "SSIDpw";
 // Server details
 const char server[] = "139.59.67.180";
 const char resource[] = "/";
-const int  port = 3333;
+const int  port = 3335;
 
 
 #include <TinyGsmClient.h>
@@ -50,7 +50,7 @@ HttpClient http(client, server, port);
 /**End**/
 // #ifdef SOFTSERIAL_DEBUG
 #include <SoftwareSerial.h>
-SoftwareSerial SerialMon (8, 24);
+SoftwareSerial SerialMon (8, 6);
 // #define SerialMon.begin (x)   SerialMon.begin((x))
 // #define SerialMon.print (...) SerialMon.print (__VA_ARGS__)
 // #define SerialMon.println (...) SerialMon.println (__VA_ARGS__)
@@ -159,9 +159,14 @@ class gateway_pkt
                     /* code */
                 
                     SerialMon.println ("GPRS Dissconnected");
+                    modem.waitForNetwork(12000);
                     modem.gprsConnect(apn, gprsUser, gprsPass);
                 }
-                
+                if((current_loc - payload) > 1020)
+                {
+                    current_loc = payload;
+                }
+
                 gprs_available = true;
             }
 
@@ -201,18 +206,29 @@ void (* arr_lrf_state[]) () =
 
 volatile lrf_states_t g_current_state = LRF_STATE_IDLE;
 
+lrf_states_t *gp_current_state = &g_current_state;
 
+
+void state_assign (lrf_states_t state, uint32_t line_no)
+{
+    SerialMon.print(line_no);
+    SerialMon.print (", ");
+    SerialMon.println(state);
+    memcpy(gp_current_state, &state, sizeof(lrf_states_t));
+
+}
 
 uint8_t g_gsm_pkt[512];
 uint32_t g_current_gsm_pkt_loc;
 
-void radio_receive ()
+void radio_receive (uint32_t line_no)
 {
-    SerialMon.println();
+    // SerialMon.println(line_no);
     rf_comm_wake ();
+
     // rf_comm_idle ();
     rf_comm_rx_enable();
-    SerialMon.println();
+    // SerialMon.println();
 }
 
 void radio_packet_received (uint32_t status)
@@ -222,19 +238,26 @@ void radio_packet_received (uint32_t status)
     pkt_buff_t pkt;
     rf_comm_pkt_receive (pkt.data, &pkt.len);
     pkt.rssi = rf_comm_get_rssi();
+    SerialMon.print ("Data : ");
+    for(uint32_t i = 0; i < pkt.len; i++)
+    {
+        SerialMon.print(pkt.data[i]);
+        SerialMon.print(" ");
+    }
+    SerialMon.println();
 
     //push radio packet in circular buffer
     g_cbuff.Push (pkt);
 
     //restart radio reception
-    radio_receive ();
+    radio_receive (__LINE__);
 }
 
 void radio_packet_drop (uint32_t status)
 {
     SerialMon.println("Dropped!");
     //restart radio reception
-    radio_receive ();
+    radio_receive (__LINE__);
 }
 
 void generate_gateway_pkt ()
@@ -318,7 +341,7 @@ void lrf_state_pkt_chk ()
         //generate GSM pkt
         //switch to comm state (GSM)
     generate_gateway_pkt ();
-    g_current_state = LRF_STATE_COMM;
+    state_assign (LRF_STATE_COMM, __LINE__);
     SerialMon.println("PKT");
     
 }
@@ -332,7 +355,7 @@ void lrf_state_comm ()
 
     g_gateway_pkt.send_gsm_pkt();
     // radio_receive();
-    g_current_state = LRF_STATE_IDLE;
+    state_assign (LRF_STATE_IDLE, __LINE__);
     SerialMon.println("COMM");
 
 }
@@ -359,10 +382,15 @@ void ms_timer_handler ()
     g_last_check += WAKEUP_FREQ_MS;
     if(g_last_check > LRF_PKT_CHK_FREQ)
     {
-        g_current_state = LRF_STATE_PKT_CHK;
+        state_assign (LRF_STATE_PKT_CHK, __LINE__);
         g_last_check = 0;
+        if(l_state == 0)
+        {
+            radio_receive(__LINE__);
+        }
 
     }
+    SerialMon.println(g_current_state);
     arr_lrf_state[g_current_state]();
 
 }
@@ -411,14 +439,14 @@ void setup()
     SerialMon.println("SCK "+String(sck));
 
     SerialMon.println ("Radio ID : "+ String(rf_comm_get_radio_id()));
-     gsm_init();
     g_irq_evt = rf_comm_radio_init (&l_radio_params, &l_radio_hw);
-    g_current_state = LRF_STATE_IDLE;
+    gsm_init();
+    state_assign (LRF_STATE_IDLE, __LINE__);
     //check gsm : send activated signal
     ms_timer_start (MS_TIMER0, MS_REPEATED_CALL, WAKEUP_FREQ_MS, ms_timer_handler);
+    radio_receive (__LINE__);
 
     //Start Radio 
-    radio_receive ();
     
 }
 
