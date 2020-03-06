@@ -4,7 +4,6 @@
 #include "byte_decode.h"
 #include "gsm_oper.h"
 #include "stdint.h"
-#include "ADC_Module.h"
 #include <ADC.h>
 #include <ADC_util.h>
 
@@ -22,9 +21,9 @@
 
 gsm_oper g_gsm[GSM_OBJ_COUNT];
 
-#define BATT_ADC_PIN 14
+int batt_adc_pin = A3;
 
-#define SUPPLY_ADC_PIN 22
+int supply_adc_pin = A5;
 class pkt_buff_t
 {
     public:
@@ -72,6 +71,25 @@ uint32_t last_conn_chk = 0;
 
 ADC *adc = new ADC();
 
+void update_batt_info ()
+{
+
+    batt_volt =  adc->adc0->analogRead(batt_adc_pin);
+    supply_volt =  digitalRead(supply_adc_pin);
+    // delay (150);
+    SerialMon.println ("Batt : "+String(batt_volt)+ "  " +String((float)((float)(batt_volt*3.3)/adc->adc0->getMaxValue()))+ "  "+" Supply : "+String(supply_volt));
+
+    if(adc->adc0->fail_flag != ADC_ERROR::CLEAR) {
+      Serial1.print("ADC0: "); Serial1.println(getStringADCError(adc->adc0->fail_flag));
+    }
+    #ifdef ADC_DUAL_ADCS
+    if(adc->adc1->fail_flag != ADC_ERROR::CLEAR) {
+      Serial1.print("ADC1: "); Serial1.println(getStringADCError(adc->adc0->fail_flag));
+    }
+    #endif
+    
+    adc->resetError();}
+
 /**TinyGSM**/
 void setup() {
     // put your setup code here, to run once:
@@ -85,21 +103,33 @@ void setup() {
     last_empty_pkt = millis();
     last_conn_chk = last_empty_pkt;
     delay (2500);
-    // adc->adc0->setAveraging(16); // set number of averages
-    // adc->adc0->setResolution(16); // set bits of resolution
-    // adc->adc0->setConversionSpeed(ADC_CONVERSION_SPEED::VERY_LOW_SPEED); // change the conversion speed
-    // adc->adc0->setSamplingSpeed(ADC_SAMPLING_SPEED::MED_SPEED); // change the sampling speed}
+    pinMode (batt_adc_pin, INPUT);
+    pinMode (supply_adc_pin, INPUT);
+    ///// ADC0 ////
+    adc->adc0->setAveraging(16); // set number of averages
+    adc->adc0->setResolution(16); // set bits of resolution
+    adc->adc0->setConversionSpeed(ADC_CONVERSION_SPEED::VERY_LOW_SPEED); // change the conversion speed
+    adc->adc0->setSamplingSpeed(ADC_SAMPLING_SPEED::MED_SPEED); // change the sampling speed
+
+    ////// ADC1 /////
+    #ifdef ADC_DUAL_ADCS
+    adc->adc1->setAveraging(16); // set number of averages
+    adc->adc1->setResolution(16); // set bits of resolution
+    adc->adc1->setConversionSpeed(ADC_CONVERSION_SPEED::MED_SPEED); // change the conversion speed
+    adc->adc1->setSamplingSpeed(ADC_SAMPLING_SPEED::MED_SPEED); // change the sampling speed
+    #endif
+
+    delay(500);
 }
+
 uint8_t g_1Bbuff;
 
 void loop() {
 
      //update millis
-    // batt_volt =  adc->adc0->analogRead(BATT_ADC_PIN);
-    // supply_volt =  adc->adc0->analogRead(SUPPLY_ADC_PIN);
-    // delay (100);
+    int8_t index = 0;
 
-    // SerialMon.println ("Batt : "+String(batt_volt)+ " Supply : "+String(supply_volt));
+
      empty_pkt_ms = millis ();
      chk_conn_ms = empty_pkt_ms;
      if ((chk_conn_ms - last_conn_chk) > CONN_CHK_FREQ_MS)
@@ -111,6 +141,9 @@ void loop() {
      
      if((empty_pkt_ms - last_empty_pkt) > EMPTY_PKT_FREQ_MS)
      {
+            update_batt_info ();
+            g_gsm[0].gsm_update_batt_volt(batt_volt);
+            g_gsm[0].gsm_update_supply_volt(supply_volt);
             g_gsm[0].gsm_send_pkt();
             last_empty_pkt = empty_pkt_ms;
      }
@@ -134,7 +167,6 @@ void loop() {
     }
 
     //check if data is available in cbuff or idle timeout
-    int8_t index = 0;
     while(g_cbuff.Len() > 0)
     {
         pkt_buff_t l_pkt; 
@@ -151,9 +183,8 @@ void loop() {
                 SerialMon.println("Data append");
                 g_gsm[index].gsm_append_payload(l_pkt.len, l_pkt.data);
                 data_present = false;
+
                 //append for gateway packet
-                g_gsm[index].gsm_update_batt_volt(batt_volt);
-                g_gsm[index].gsm_update_supply_volt(supply_volt);
             }
             else
             {
@@ -167,6 +198,9 @@ void loop() {
         //send GSM packet
         if(g_gsm[index].gsm_is_payload_present())
         {
+            update_batt_info ();
+            g_gsm[index].gsm_update_batt_volt(batt_volt);
+            g_gsm[index].gsm_update_supply_volt(supply_volt);
             g_gsm[index].gsm_send_pkt();
             last_empty_pkt = millis ();
         }

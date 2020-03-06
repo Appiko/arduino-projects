@@ -100,8 +100,7 @@ bool gsm_oper::gsm_varify_connection ()
     {
         /* code */
         SerialMon.println ("Trying to reconnect..!");
-        modem.waitForNetwork(12000);
-        modem.gprsConnect(apn, gprsUser, gprsPass);
+        this->gsm_restart();
         conn_status = http.connect(server, port);
         l_attempts++;        
     }
